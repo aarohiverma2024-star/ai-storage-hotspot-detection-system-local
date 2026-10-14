@@ -1,0 +1,25 @@
+version: "3.9"
+services:
+  mongo:
+    image: mongo:7
+    ports: ["27017:27017"]
+    volumes: ["mongo_data:/data/db"]
+  backend:
+    build: ./backend
+    env_file: ./backend/.env
+    environment:
+      MONGO_URL: mongodb://mongo:27017
+    ports: ["8001:8001"]
+    volumes:
+      - ./backend:/app
+      - ./tests:/tests
+    command: ["uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8001", "--reload"]
+    depends_on: [mongo]
+  frontend:
+    build: ./frontend
+    environment:
+      REACT_APP_BACKEND_URL: http://localhost:8001
+    ports: ["3000:80"]
+    depends_on: [backend]
+volumes:
+  mongo_data:
